@@ -51,6 +51,7 @@ pipeline AirportsPipeline {
   // Rows that include values that are not valid according to the their value types are dropped automatically. 
   block AirportsTableInterpreter oftype TableInterpreter {
     header: true;
+    
     columns: [
       "Lfd. Nummer" oftype integer,
       "Name des Flughafens" oftype text,
@@ -60,7 +61,7 @@ pipeline AirportsPipeline {
       "ICAO" oftype text,
       "Latitude" oftype integer,
       "Longitude" oftype integer,
-      "Altitude" oftype integer,
+      "Altitude" oftype integer
       
  
     ];
