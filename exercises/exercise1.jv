@@ -1,5 +1,3 @@
-
-
 pipeline AirportsPipeline {
 
   // 1. We describe the structure of the pipeline,
