@@ -18,9 +18,9 @@ This project explores the impact of renewable energy adoption on economic growth
 
 <!-- Describe each datasources you plan to use in a section. Use the prefic "DatasourceX" where X is the id of the datasource. -->
 
-### Datasource1: World Bank GDP Data
-* Metadata URL: https://data.worldbank.org/indicator/NY.GDP.MKTP.CD
-* Data URL: https://api.worldbank.org/v2/en/indicator/NY.GDP.MKTP.CD?downloadformat=csv
+### Datasource1: World Bank GDP  Data
+* Metadata URL: https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG
+* Data URL:https://api.worldbank.org/v2/en/indicator/NY.GDP.MKTP.KD.ZG?downloadformat=csv
 * Data Type: CSV
 
 Economic Data: GDP growth rates from the World Bank
