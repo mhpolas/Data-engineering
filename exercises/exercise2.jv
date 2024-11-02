@@ -33,7 +33,7 @@ pipeline TreePlantingPipeline {
         regex: /^\d{1,3}\.\d+,\s*\d{1,3}\.\d+$/;
     }
 
-    // Custom types with constraints for data quality
+    // Custom types with constraints for data  quality
 
     // Custom type for 'stadtteil' with the DistrictNameConstraint
     valuetype DistrictType oftype text {
