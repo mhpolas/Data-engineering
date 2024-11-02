@@ -1,0 +1,68 @@
+// Jayvee pipeline to process tree planting data for "Vogelsang" in Neuss city's 2023 dataset
+pipeline TreePlantingPipeline {
+
+    // Define the data flow: extraction, interpretation, filtering, and loading
+    TreeDataExtractor
+        -> TextInterpreter
+        -> CsvInterpreter
+        -> TableInterpreter
+        -> SQLiteDataLoader;
+
+    // Step 1: Extract CSV data from the specified URL as an HTTP resource
+    block TreeDataExtractor oftype HttpExtractor {
+        url: "https://opendata.rhein-kreis-neuss.de/api/v2/catalog/datasets/stadt-neuss-herbstpflanzung-2023/exports/csv";
+    }
+
+    // Step 2: Interpret the extracted file as plain text to prepare for CSV parsing
+    block TextInterpreter oftype TextFileInterpreter { }
+
+    // Step 3: Interpret the text data as CSV, specifying a semicolon as the delimiter
+    block CsvInterpreter oftype CSVInterpreter {
+        delimiter: ";";  // Define CSV delimiter as a semicolon
+    }
+
+    // Constraints for data validation
+
+    // Constraint to allow only 'stadtteil' values that start with "Vogelsang"
+    constraint DistrictNameConstraint oftype RegexConstraint {
+        regex: /^Vogelsang/;
+    }
+
+    // Constraint to ensure 'id' follows the format "xx.xxx, yy.yyy"
+    constraint GeoPointConstraint oftype RegexConstraint {
+        regex: /^\d{1,3}\.\d+,\s*\d{1,3}\.\d+$/;
+    }
+
+    // Custom types with constraints for data quality
+
+    // Custom type for 'stadtteil' with the DistrictNameConstraint
+    valuetype DistrictType oftype text {
+        constraints: [ DistrictNameConstraint ];
+    }
+
+    // Custom type for 'id' with the geopoint format constraint
+    valuetype GeoPointType oftype text {
+        constraints: [ GeoPointConstraint ];
+    }
+
+    // Step 4: Interpret CSV data into a structured table, defining column names and types
+    block TableInterpreter oftype TableInterpreter {
+        header: true;  // CSV file includes headers
+
+        // Define the table columns, specifying custom types for validation and dropping 'baumart_deutsch'
+        columns: [
+            "lfd_nr" oftype integer,           // Sequence number column
+            "stadtteil" oftype DistrictType,   // District, constrained by DistrictType
+            "standort" oftype text,            // Location of the tree planting (text)
+            "baumart_botanisch" oftype text,   // Botanical species (text)
+            "id" oftype GeoPointType,          // Geopoint, constrained by GeoPointType
+            "baumfamilie" oftype text          // Family of the tree (text)
+        ];
+    }
+
+    // Step 5: Load the validated data into a SQLite database
+    block SQLiteDataLoader oftype SQLiteLoader {
+        file: "./trees.sqlite";  // Target SQLite database file
+        table: "trees";          // Name of the table in the SQLite database
+    }
+}
