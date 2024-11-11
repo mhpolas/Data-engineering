@@ -25,12 +25,21 @@ This project explores the impact of renewable energy adoption on economic growth
 
 Economic Data: GDP growth rates from the World Bank
 
+<<<<<<< HEAD
 ### Datasource1: World Renewable energy  Data
 * Metadata URL: https://pxweb.irena.org/pxweb/en/IRENASTAT/IRENASTAT__Power%20Capacity%20and%20Generation/RESHARE_2024_H2.px/
 * Data URL: https://pxweb.irena.org:443/sq/a8e3bb11-9ee1-49b6-ac0d-18a477043c83
 * Data Type: CSV
 <!-- alternative https://pxweb.irena.org/sq/c46949f6-4942-4a3c-a1d2-ecc09d566dd7 -->
 Renewable energy share of electricity capacity and generation (%) by Region/country/area, Indicator and Year
+=======
+### Datasource1: World Renewable energy consumption Data
+* Metadata URL: https://data.worldbank.org/indicator/EG.FEC.RNEW.ZS
+* Data URL: https://api.worldbank.org/v2/en/indicator/EG.FEC.RNEW.ZS?downloadformat=csv
+* Data Type: CSV
+
+Renewable energy consumption (% of total final energy consumption)
+>>>>>>> 16fe0d6c226c514f1f3c779293d47b8d68676349
 
 ## Work Packages
 
