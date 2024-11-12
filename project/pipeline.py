@@ -36,16 +36,17 @@ def download_csv(url, destination_path):
         print(f"Failed to download CSV from {url}. Status code: {response.status_code}")
 
 # Function to read and clean the CSV file
-def process_csv(file_path):
+def process_csv(file_path, skip_rows=0):
     try:
-        # Open and inspect the first few lines of the file
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for _ in range(5):  # Check first 5 lines
-                print(f.readline().strip())
-        
-        # Attempt to read the CSV file with options to handle errors
-        df = pd.read_csv(file_path, on_bad_lines='skip', delimiter=',', encoding='utf-8')  # Try comma delimiter
-        print(f"Data from {file_path} loaded successfully.")
+        # Try reading the file with 'utf-8' encoding first, if it fails, fall back to 'latin1'
+        df = pd.read_csv(file_path, skiprows=skip_rows, encoding='utf-8')
+        print(f"Data from {file_path} loaded successfully with UTF-8 encoding.")
+        return df
+    except UnicodeDecodeError:
+        # Fallback to latin1 encoding if utf-8 fails
+        print(f"UTF-8 decoding failed, trying with latin1 encoding for {file_path}.")
+        df = pd.read_csv(file_path, skiprows=skip_rows, encoding='latin1')
+        print(f"Data from {file_path} loaded successfully with latin1 encoding.")
         return df
     except Exception as e:
         print(f"Error processing CSV file {file_path}: {e}")
@@ -53,20 +54,21 @@ def process_csv(file_path):
 
 # Download and process the GDP dataset (ZIP file)
 download_and_extract_zip(url_gdp_data_zip, data_directory)
-# Assuming the zip contains a CSV file with a known name (fix this based on actual extracted name)
-gdp_csv_files = os.listdir(data_directory)  # List files in the data directory
-gdp_csv_file = next((file for file in gdp_csv_files if file.endswith('.csv')), None)
 
-if gdp_csv_file:
-    gdp_file_path = os.path.join(data_directory, gdp_csv_file)
-    df_gdp = process_csv(gdp_file_path)
+# The exact file you're looking for
+gdp_csv_file = "API_NY.GDP.MKTP.KD.ZG_DS2_en_csv_v2_10065.csv"
+gdp_file_path = os.path.join(data_directory, gdp_csv_file)
+
+# Process the GDP data, skipping the first 4 rows
+if os.path.exists(gdp_file_path):
+    df_gdp = process_csv(gdp_file_path, skip_rows=4)
 else:
-    print("No CSV file found in GDP ZIP extraction.")
+    print(f"File {gdp_csv_file} not found in the extracted files.")
 
 # Download and process the RE dataset (direct CSV file)
 csv_re_file = os.path.join(data_directory, "RESHARE.csv")
 download_csv(url_re_data_csv, csv_re_file)
-df_re = process_csv(csv_re_file)
+df_re = process_csv(csv_re_file,skip_rows=0)
 
 # Save the processed data back as CSV
 gdp_output_csv = os.path.join(data_directory, "gdp_data_processed.csv")
