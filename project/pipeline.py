@@ -2,6 +2,7 @@ import os
 import zipfile
 import requests
 import pandas as pd
+import sqlite3
 from io import BytesIO
 
 # Define the URLs of the datasets
@@ -9,7 +10,7 @@ url_gdp_data_zip = "https://api.worldbank.org/v2/en/indicator/NY.GDP.MKTP.KD.ZG?
 url_re_data_csv = "https://pxweb.irena.org:443/sq/a8e3bb11-9ee1-49b6-ac0d-18a477043c83"
 
 # Define the directories
-data_directory = '../data'  # Ensure this is the correct relative path to the data directory
+data_directory = '../data'  
 if not os.path.exists(data_directory):
     os.makedirs(data_directory)
 
@@ -52,6 +53,21 @@ def process_csv(file_path, skip_rows=0):
         print(f"Error processing CSV file {file_path}: {e}")
         return None
 
+# Function to export DataFrame to SQLite database
+def export_to_sqlite(df, table_name, db_name):
+    try:
+        # Create a connection to SQLite database (it will create the database file if it doesn't exist)
+        conn = sqlite3.connect(db_name)
+        # Write the DataFrame to SQLite
+        df.to_sql(table_name, conn, if_exists='replace', index=False)
+        conn.commit()
+        print(f"Data saved to SQLite table '{table_name}' in {db_name}.")
+    except Exception as e:
+        print(f"Error exporting to SQLite: {e}")
+    finally:
+        # Close the SQLite connection
+        conn.close()
+
 # Download and process the GDP dataset (ZIP file)
 download_and_extract_zip(url_gdp_data_zip, data_directory)
 
@@ -68,7 +84,7 @@ else:
 # Download and process the RE dataset (direct CSV file)
 csv_re_file = os.path.join(data_directory, "RESHARE.csv")
 download_csv(url_re_data_csv, csv_re_file)
-df_re = process_csv(csv_re_file,skip_rows=0)
+df_re = process_csv(csv_re_file)
 
 # Save the processed data back as CSV
 gdp_output_csv = os.path.join(data_directory, "gdp_data_processed.csv")
@@ -86,3 +102,12 @@ if df_re is not None:
     print(f"Processed RE data saved to {re_output_csv}")
 else:
     print("RE data processing failed.")
+
+# Export DataFrames to SQLite
+sqlite_db_file = os.path.join(data_directory, "data.db")  # SQLite database file
+
+if df_gdp is not None:
+    export_to_sqlite(df_gdp, 'gdp_data', sqlite_db_file)
+
+if df_re is not None:
+    export_to_sqlite(df_re, 'renewable_energy_data', sqlite_db_file)
