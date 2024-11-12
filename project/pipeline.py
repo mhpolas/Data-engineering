@@ -9,7 +9,7 @@ url_gdp_data_zip = "https://api.worldbank.org/v2/en/indicator/NY.GDP.MKTP.KD.ZG?
 url_re_data_csv = "https://pxweb.irena.org:443/sq/a8e3bb11-9ee1-49b6-ac0d-18a477043c83"
 
 # Define the directories
-data_directory = './data'  # Ensure this is the correct relative path to the data directory
+data_directory = '../data'  # Ensure this is the correct relative path to the data directory
 if not os.path.exists(data_directory):
     os.makedirs(data_directory)
 
