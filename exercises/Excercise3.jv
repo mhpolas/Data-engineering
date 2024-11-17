@@ -1,0 +1,96 @@
+
+pipeline WDRPipeline {
+
+  // Define the pipeline flow
+  WDRDataExtractor
+    -> WDRXlsxInterpreter
+    -> SheetFigureS512Selector
+    -> DataRangeP3S45Selector
+    -> BondDataFilter
+    -> BondDataInterpreter
+    -> BondDataLoader;
+
+  // Separate flow for processing GDP per Capita table
+  DataRangeP3S45Selector
+    -> GdpDataFilter
+    -> GdpDataInterpreter
+    -> GdpDataLoader;
+
+  // Step 1: Fetch the Excel file from the given URL
+  block WDRDataExtractor oftype HttpExtractor {
+    url: "https://thedocs.worldbank.org/en/doc/7d852628d96b9411d43e5d36d5dff941-0050062022/original/Graphs-Chapter-5-02082022.xlsx";
+  }
+
+  // Step 2: Interpret the file as an Excel workbook
+  block WDRXlsxInterpreter oftype XLSXInterpreter { }
+
+  // Step 3: Select the sheet named "Figure S5.1.2"
+  block SheetFigureS512Selector oftype SheetPicker {
+    sheetName: "Figure S5.1.2";
+  }
+
+  // Step 4: Select the relevant data range, excluding figures and headers
+  block DataRangeP3S45Selector oftype CellRangeSelector {
+    select: range P3:S45;
+  }
+
+  // Step 5: Remove irrelevant columns for Bond Issuance data
+  block BondDataFilter oftype ColumnDeleter {
+    delete: [column B, column C];
+  }
+
+  // Step 6: Remove irrelevant columns for GDP per Capita data
+  block GdpDataFilter oftype ColumnDeleter {
+    delete: [column B, column D];
+  }
+
+  // Step 7: Process Bond Issuance data into a structured table
+  block BondDataInterpreter oftype TableInterpreter {
+    header: false;
+    columns: [
+      "ISO3" oftype CountryCodeAlpha3,
+      "Share of government sustainable bonds" oftype BondIssuanceType
+    ];
+  }
+
+  // Step 8: Process GDP per Capita data into a structured table
+  block GdpDataInterpreter oftype TableInterpreter {
+    header: false;
+    columns: [
+      "ISO3" oftype CountryCodeAlpha3,
+      "GDP per capita (US$, thousands)" oftype GdpValueType
+    ];
+  }
+
+  // Step 9: Load Bond Issuance data into SQLite
+  block BondDataLoader oftype SQLiteLoader {
+    table: "bondIssuance";
+    file: "./wdr2022.sqlite";
+  }
+
+  // Step 10: Load GDP per Capita data into SQLite
+  block GdpDataLoader oftype SQLiteLoader {
+    table: "gdpPerCapita";
+    file: "./wdr2022.sqlite";
+  }
+
+  // Define custom value types and constraints for data validation
+  valuetype GdpValueType oftype decimal {
+    constraints: [PositiveGdpConstraint];
+  }
+
+  // Constraint: GDP per Capita must be a positive decimal
+  constraint PositiveGdpConstraint on decimal: value > 0;
+
+  valuetype BondIssuanceType oftype decimal {
+    constraints: [BondRangeConstraint];
+  }
+
+  // Constraint: Bond Issuance Share must be between 0 and 1 inclusive
+  constraint BondRangeConstraint oftype RangeConstraint {
+    lowerBound: 0;
+    lowerBoundInclusive: true;
+    upperBound: 1;
+    upperBoundInclusive: true;
+  }
+}
