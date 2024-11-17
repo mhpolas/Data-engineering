@@ -1,92 +1,92 @@
 
-pipeline WDRPipeline {
+pipeline WDRStatsPipeline {
 
-  // Define the pipeline flow
+  // Define pipeline flow for bond issuance data
   WDRDataExtractor
-    -> WDRXlsxInterpreter
-    -> SheetFigureS512Selector
-    -> DataRangeP3S45Selector
-    -> BondDataFilter
-    -> BondDataInterpreter
-    -> BondDataLoader;
+    -> WDRXlsxProcessor
+    -> SheetSelector
+    -> RangeSelector
+    -> BondColumnCleaner
+    -> BondTableProcessor
+    -> BondDataSaver;
 
-  // Separate flow for processing GDP per Capita table
-  DataRangeP3S45Selector
-    -> GdpDataFilter
-    -> GdpDataInterpreter
-    -> GdpDataLoader;
+  // Define parallel flow for GDP per Capita data
+  RangeSelector
+    -> GdpColumnCleaner
+    -> GdpTableProcessor
+    -> GdpDataSaver;
 
-  //  Fetch the Excel file from the given URL
+  // Step 1: Extract data from the specified Excel file URL
   block WDRDataExtractor oftype HttpExtractor {
     url: "https://thedocs.worldbank.org/en/doc/7d852628d96b9411d43e5d36d5dff941-0050062022/original/Graphs-Chapter-5-02082022.xlsx";
   }
 
-  //  Interpret the file as an Excel workbook
-  block WDRXlsxInterpreter oftype XLSXInterpreter { }
+  // Step 2: Process the file as an Excel workbook
+  block WDRXlsxProcessor oftype XLSXInterpreter { }
 
-  // Select the sheet named "Figure S5.1.2"
-  block SheetFigureS512Selector oftype SheetPicker {
+  // Step 3: Select the specific sheet for processing
+  block SheetSelector oftype SheetPicker {
     sheetName: "Figure S5.1.2";
   }
 
-  //  Select the relevant data range, excluding figures and headers
-  block DataRangeP3S45Selector oftype CellRangeSelector {
+  // Step 4: Extract the required data range (P3:S45)
+  block RangeSelector oftype CellRangeSelector {
     select: range P3:S45;
   }
 
-  //  Remove irrelevant columns for Bond Issuance data
-  block BondDataFilter oftype ColumnDeleter {
+  // Step 5: Clean Bond Issuance columns by removing unnecessary ones
+  block BondColumnCleaner oftype ColumnDeleter {
     delete: [column B, column C];
   }
 
-  // Remove irrelevant columns for GDP per Capita data
-  block GdpDataFilter oftype ColumnDeleter {
+  // Step 6: Clean GDP per Capita columns by removing unnecessary ones
+  block GdpColumnCleaner oftype ColumnDeleter {
     delete: [column B, column D];
   }
 
-  //  Process Bond Issuance data into a structured table
-  block BondDataInterpreter oftype TableInterpreter {
+  // Step 7: Process Bond Issuance data into a structured table
+  block BondTableProcessor oftype TableInterpreter {
     header: false;
     columns: [
-      "ISO3" oftype CountryCodeAlpha3,
-      "Share of government sustainable bonds" oftype BondIssuanceType
+      "Country Code" oftype CountryCodeAlpha3,
+      "Bond Issuance Share" oftype ValidBondType
     ];
   }
 
-  //  Process GDP per Capita data into a structured table
-  block GdpDataInterpreter oftype TableInterpreter {
+  // Step 8: Process GDP per Capita data into a structured table
+  block GdpTableProcessor oftype TableInterpreter {
     header: false;
     columns: [
-      "ISO3" oftype CountryCodeAlpha3,
-      "GDP per capita (US$, thousands)" oftype GdpValueType
+      "Country Code" oftype CountryCodeAlpha3,
+      "GDP per Capita" oftype ValidGdpType
     ];
   }
 
-  //  Load Bond Issuance data into SQLite
-  block BondDataLoader oftype SQLiteLoader {
+  // Step 9: Save Bond Issuance data into SQLite
+  block BondDataSaver oftype SQLiteLoader {
     table: "bondIssuance";
     file: "./country-stats.sqlite";
   }
 
-  //  Load GDP per Capita data into SQLite
-  block GdpDataLoader oftype SQLiteLoader {
+  // Step 10: Save GDP per Capita data into SQLite
+  block GdpDataSaver oftype SQLiteLoader {
     table: "gdpPerCapita";
     file: "./country-stats.sqlite";
   }
 
-  // Define custom value types and constraints for data validation
-  valuetype GdpValueType oftype decimal {
+  // Define value types and validation rules
+  valuetype ValidGdpType oftype decimal {
     constraints: [PositiveGdpConstraint];
   }
 
-  // Constraint: GDP per Capita must be a positive decimal
+  // Validation rule: GDP per Capita must be a positive decimal
   constraint PositiveGdpConstraint on decimal: value > 0;
 
-  valuetype BondIssuanceType oftype decimal {
+  valuetype ValidBondType oftype decimal {
     constraints: [BondRangeConstraint];
   }
 
-  // Constraint: Bond Issuance Share must be between 0 and 1 inclusive
+  // Validation rule: Bond Issuance Share must be in range 0–1 inclusive
   constraint BondRangeConstraint oftype RangeConstraint {
     lowerBound: 0;
     lowerBoundInclusive: true;
