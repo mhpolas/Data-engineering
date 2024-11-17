@@ -16,35 +16,35 @@ pipeline WDRPipeline {
     -> GdpDataInterpreter
     -> GdpDataLoader;
 
-  // Step 1: Fetch the Excel file from the given URL
+  //  Fetch the Excel file from the given URL
   block WDRDataExtractor oftype HttpExtractor {
     url: "https://thedocs.worldbank.org/en/doc/7d852628d96b9411d43e5d36d5dff941-0050062022/original/Graphs-Chapter-5-02082022.xlsx";
   }
 
-  // Step 2: Interpret the file as an Excel workbook
+  //  Interpret the file as an Excel workbook
   block WDRXlsxInterpreter oftype XLSXInterpreter { }
 
-  // Step 3: Select the sheet named "Figure S5.1.2"
+  // Select the sheet named "Figure S5.1.2"
   block SheetFigureS512Selector oftype SheetPicker {
     sheetName: "Figure S5.1.2";
   }
 
-  // Step 4: Select the relevant data range, excluding figures and headers
+  //  Select the relevant data range, excluding figures and headers
   block DataRangeP3S45Selector oftype CellRangeSelector {
     select: range P3:S45;
   }
 
-  // Step 5: Remove irrelevant columns for Bond Issuance data
+  //  Remove irrelevant columns for Bond Issuance data
   block BondDataFilter oftype ColumnDeleter {
     delete: [column B, column C];
   }
 
-  // Step 6: Remove irrelevant columns for GDP per Capita data
+  // Remove irrelevant columns for GDP per Capita data
   block GdpDataFilter oftype ColumnDeleter {
     delete: [column B, column D];
   }
 
-  // Step 7: Process Bond Issuance data into a structured table
+  //  Process Bond Issuance data into a structured table
   block BondDataInterpreter oftype TableInterpreter {
     header: false;
     columns: [
@@ -53,7 +53,7 @@ pipeline WDRPipeline {
     ];
   }
 
-  // Step 8: Process GDP per Capita data into a structured table
+  //  Process GDP per Capita data into a structured table
   block GdpDataInterpreter oftype TableInterpreter {
     header: false;
     columns: [
@@ -62,16 +62,16 @@ pipeline WDRPipeline {
     ];
   }
 
-  // Step 9: Load Bond Issuance data into SQLite
+  //  Load Bond Issuance data into SQLite
   block BondDataLoader oftype SQLiteLoader {
     table: "bondIssuance";
-    file: "./wdr2022.sqlite";
+    file: "./country-stats.sqlite";
   }
 
-  // Step 10: Load GDP per Capita data into SQLite
+  //  Load GDP per Capita data into SQLite
   block GdpDataLoader oftype SQLiteLoader {
     table: "gdpPerCapita";
-    file: "./wdr2022.sqlite";
+    file: "./country-stats.sqlite";
   }
 
   // Define custom value types and constraints for data validation
