@@ -35,18 +35,18 @@ pipeline WeatherDataPipeline {
     block InterpretCSV oftype CSVInterpreter {
         delimiter: ";"; // Use semicolon as delimiter
     }
-   // Update the header for the battery temperature column
+   // // Rename Headers1
     block UpdateBatteryColumn oftype CellWriter {
         at: cell J1; 
         write: ["battery_temperature"];
     }
-    // Replace the German column headers with English ones
+    // Rename Headers2
     block UpdateHeaders oftype CellWriter {
         at: range A1:E1; 
         write: ["id", "producer", "model", "month", "temperature"];
     }
 
-    // Verify the data columns and their data types
+    // columns and their data types
     block CheckDataIntegrity oftype TableInterpreter {
         header: true;
         columns: [
@@ -59,7 +59,7 @@ pipeline WeatherDataPipeline {
         ];
     }
 
-    // Define a reusable transformation to convert Celsius to Fahrenheit
+    // to convert Celsius to Fahrenheit
     transform ConvertCelsiusToFahrenheit {
         from CelsiusValue oftype decimal;
         to FahrenheitValue oftype decimal;
@@ -67,7 +67,7 @@ pipeline WeatherDataPipeline {
         FahrenheitValue: 32 + ((CelsiusValue * 9) / 5);
     }
 
-    // Apply the temperature conversion for ambient temperature
+    // Apply the temperature conversion 
     block TransformTemperature oftype TableTransformer {
         inputColumns: ["temperature"];
         outputColumn: "temperature";
@@ -80,7 +80,7 @@ pipeline WeatherDataPipeline {
         outputColumn: "battery_temperature";
         uses: ConvertCelsiusToFahrenheit;
     }
-
+// Month constraint 
     constraint MonthRange oftype RangeConstraint {
         lowerBound: 1;
         lowerBoundInclusive: true;
