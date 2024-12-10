@@ -35,4 +35,4 @@ jobs:
       run: bash ./project/pipeline.sh
 
     - name: Run Test Script
-      run: bash ./project/test.sh
+      run: bash ./project/tests.sh
