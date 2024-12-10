@@ -38,7 +38,7 @@ def validate_output_files():
         elif os.path.getsize(file) == 0:
             errors.append(f"File is empty: {file}")
     
-    if errors:
+    if errors: 
         for error in errors:
             print(error)
         return False
