@@ -1,4 +1,4 @@
-name: CI for Project Tests
+name: CI for Project
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  run-tests:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,14 +19,20 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: '3.8'
 
     - name: Install Dependencies
       run: |
-        pip install pandas
+        if [ -f ./project/requirements.txt ]; then pip install -r ./project/requirements.txt; fi
 
-    - name: List Files in Project Directory
+    - name: List Root Directory Files
+      run: ls -la
+
+    - name: List Project Directory Files
       run: ls -la ./project
 
+    - name: Run Pipeline Script
+      run: bash ./project/pipeline.sh
+
     - name: Run Test Script
-      run: bash https://github.com/mhpolas/Data-engineering/blob/main/project/tests.sh
+      run: bash ./project/test.sh
