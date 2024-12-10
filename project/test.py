@@ -14,7 +14,7 @@ def run_etl_pipeline():
     print("Running ETL pipeline...")
 
     # Use subprocess to execute the pipeline
-    process = subprocess.Popen(['python', 'pipeline.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(['python', './project/pipeline.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
 
     if process.returncode != 0:
