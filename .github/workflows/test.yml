@@ -25,11 +25,8 @@ jobs:
       run: |
         pip install pandas
 
+    - name: List Files in Project Directory
+      run: ls -la ./project
+
     - name: Run Test Script
       run: bash ./project/test.sh
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Mock Data Handling (Optional)
-      if: failure()
-      run: echo "Tests failed. Using mocked data."
